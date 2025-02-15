@@ -39,7 +39,7 @@ This function should return:
 
 *   0b0000000001101010 = 0x006a
 
-where the bit positions 1, 3, 5, and 6 are all ones and` all other
+where the bit positions 1, 3, 5, and 6 are all ones and all other
 positions are zeros.
 
 The following pseudo-code will help you get started:

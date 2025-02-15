@@ -67,28 +67,31 @@ clear_used:
                 sd   s5, 8(sp)          #not_used
                 sd   s6, (sp)           #board_index
 
+                mv   s0, a0             #board = board
+                mv   s1, a1             #group = group
+                li   s2, 0              #change_made = 0         
+                li   s3, 0              #group_index  
                 not  s5, a2             # notused = ~used (flip the bits)
-                li   s2, 0              # change_made = 0         
-                li   s3, 0                      
 1:
                 add  t0, s1, s3         #group_element_address = group + group_index
                 lb   t1, 0(t0)          #board_index = lb (group_element_address)
                 slli t2, t1, 1          #scaled_board_index = board_index << 1
-                add  s6, s0, t2         #board_element_address = board + scaled_board_index
+                add  t3, s0, t2         #board_element_address = board + scaled_board_index
 
-                lh   s4, 0(s6)          #elememnt = lh (board_element_address)
+                lhu  s4, 0(t3)          #elememnt = lh (board_element_address)
+                mv   s6, t3
                 mv   a0, s4             #move element to return
-                jal  ra, count_bits     #count = count_bits(element)
+                jal  ra, count_bits           #count = count_bits(element)
                 li   t1, 1              #resets the value so it remains after function calls
-                beq  a0, t1, 2f         #count != 1 (indicating an unsolved square):
-                and  t0, s4, s5         #new_elt = elt & notused (clear the bits indicated by used)
-                beq  t0, s4, 2f
-                sh   t0, 0(s6)          #board[board_index] = new_elt # use the address from earlier 
-                li   s2, 1              #change_made = 1                                        
+                beq  a0, t1, 2f       #count != 1 (indicating an unsolved square):
+                and  t0, s4, s5         # new_elt = s4 & ~used
+                beq  t0, s4, 2f       # if new_elt equals s4, then no bits were cleared; skip update
+                sh   t0, 0(s6)          # update board element
+                li   s2, 1              # mark that a change was made                                        
 2:
                 addi s3, s3, 1          #group_index++
-                li   t5, 10             #resets the value so it remains after function calls
-                blt  s3, t5, 1b         #while group_index < 9, 1b
+                li   t4, 9              #resets the value so it remains after function calls
+                blt  s3, t4, 1b       #while group_index < 9, 1b
                 mv   a0, s2             #move used into a0
 
                 ld   ra, 56(sp)
@@ -109,17 +112,33 @@ pencil_marks:
                 sd   ra, 40(sp)         #return address
                 sd   s0, 32(sp)         #board
                 sd   s1, 24(sp)         #group
-                sd   s2, 16(sp)         #used
-                sd   s3, 8(sp)          #group_index
-                sd   s4, (sp)           #element
-                                        
-                                        # changed = 0
-                                        # for group_start = 0; group_start < 27*9; group_start += 9
-                                        #     used = get_used(board, table+group_start)
-                                        #     delta = clear_used(board, table+group_start, used)
-                                        #     if delta != 0:
-                                        #         changed = 1
-                                        # return changed
+                sd   s2, 16(sp)         #group_start
+                sd   s3, 8(sp)          #used
+                sd   s4, (sp)           #changed
+
+                mv   s0, a0
+                mv   s1, a1
+                li   s2, 0
+                li   s4, 0
+1:
+                add  a1, s1, s2         #set a1 = table + group_start
+                mv   a0, s0             #move board into a0
+                
+                jal  ra, get_used       #call get_used
+                mv   s3, a0
+                add  a1, s1, s2         #set a1 = table + group_start
+                mv   a2, s3             #move used from a0 into a2
+                mv   a0, s0             #move board into a0
+                
+                jal  ra, clear_used     #call clear_used to get delta in a0
+                beqz a0, 2f             #if delta == 0, skip
+                li   s4, 1              #set changed to 1
+2:
+                addi s2, s2, 9          #group_start += 9    
+                li   t0, 27*9           
+                blt  s2, t0, 1b         #while (group_start < 27*9)
+                mv   a0, s4             #mv changed into return reg
+
                 ld   ra, 40(sp) 
                 ld   s0, 32(sp)
                 ld   s1, 24(sp)
@@ -127,5 +146,5 @@ pencil_marks:
                 ld   s3, 8(sp)
                 ld   s4, (sp)
                 addi sp, sp, 48
-                ret
+                ret                     # return changed
 
