@@ -1,0 +1,60 @@
+<html><head></head><body><h1>Selection sort</h1>
+
+<p>Implement the function <code>sort</code> in <code>sort.s</code> to perform a selection
+sort over an array:</p>
+
+<pre><code>sort(begin_address, end_address)
+</code></pre>
+
+<p>Selection sort works by finding the smallest element in the array
+and swapping it with the first element:</p>
+
+<pre><code>[8, 5, 2, 4, 7] =&gt; [2, 5, 8, 4, 7]
+ ^-----^
+</code></pre>
+
+<p>Then the first element is correct, so ignore it and repeat on the
+rest of the list:</p>
+
+<pre><code>2 [5, 8, 4, 7] =&gt; 2 [4, 8, 5, 7]
+   ^-----^
+</code></pre>
+
+<p>Now the first two elements are sorter, so ignore them and repeat on
+the rest of the list:</p>
+
+<pre><code>2, 4 [8, 5, 7] =&gt; 2, 4 [5, 8, 7]
+      ^--^
+</code></pre>
+
+<p>repeat:</p>
+
+<pre><code>2, 4, 5 [8, 7] =&gt; 2, 4, 5, [7, 8]
+         ^--^
+</code></pre>
+
+<p>repeat:</p>
+
+<pre><code>2, 4, 5, 7, [8] =&gt; 2, 4, 5, 7, [8]
+</code></pre>
+
+<p>Now there is no unsorted list left:</p>
+
+<pre><code>2, 4, 5, 7, 8
+</code></pre>
+
+<p>so the list is fully sorted and the function is finished.</p>
+
+<p>This function should:</p>
+
+<ul>
+<li>Allocate a stack frame (it is a non-leaf function)</li>
+<li>Call <code>find_smallest</code> from step 1 to find the smallest element
+in the entire input</li>
+<li>Swap the first element and the smallest element</li>
+<li>Increment the <code>begin_address</code> value by 8 and repeat</li>
+<li>End when <code>begin_address</code> and <code>end_address</code> are the same</li>
+<li>Restore any s-registers used from the stack, restore the ra
+register, deallocate the stack frame, and return</li>
+</ul>
+</body></html>
